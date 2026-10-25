@@ -1,7 +1,12 @@
 # Gerardo Portfolio — Project Notes
 
 Portfolio site for **Gerardo Mantaring** (he/him). Astro 7, to be hosted on GitHub Pages.
-Run locally: `npm run dev` → http://localhost:4321. `README.md` covers setup and deploying.
+Run locally: `npm run dev` → http://localhost:4321/jero-s-portfolio/. `README.md` covers setup.
+
+**Repo and sharing**
+- github.com/ggqmantaring/jero-s-portfolio is Gerardo's repo; Abby is a collaborator. She works locally and pushes **directly to `main`**, committing as "Abby" with her GitHub no-reply email.
+- The repo is private for now. Once Gerardo makes it public and sets Settings → Pages → Source to "GitHub Actions", `.github/workflows/deploy.yml` publishes every push to https://ggqmantaring.github.io/jero-s-portfolio/. The workflow skips itself while the repo is private.
+- No phone number anywhere, since the repo will be public. Design source files (.ai, .psd, .aseprite, .mdp) are kept out of git.
 
 ---
 
@@ -115,4 +120,5 @@ Gerardo was the **artist** on Dear Mumei; his own jam comment says so, and he al
 **Later**
 - Pixel art exported at 1×: add a per-image display scale, then re-export the heavy GIFs (Mosquito "Heal" 746 KB, "Attack" 307 KB, which is also the home thumbnail)
 - Favicon
-- GitHub repo, `site` and `base` in `astro.config.mjs`, and the deploy workflow
+- Gerardo: make the repo public, then set Settings → Pages → Source to "GitHub Actions"
+- If the site moves to mantaring.org: set `site` to the domain and remove `base` in `astro.config.mjs`
