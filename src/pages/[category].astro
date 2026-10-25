@@ -20,7 +20,7 @@ const { category, number } = Astro.props;
 const base = import.meta.env.BASE_URL.replace(/\/$/, '');
 ---
 
-<Base title={`${category.name} — Gerardo Mantaring`}>
+<Base title={`${category.name} — Jero Mantaring`}>
   <main class="page">
     <a class="label back" href={`${base}/#${category.slug}`}>← Back to index</a>
     <WorkSection category={category} number={number} all />

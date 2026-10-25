@@ -1,6 +1,6 @@
 # Gerardo Portfolio — Project Notes
 
-Portfolio site for **Gerardo Mantaring** (he/him). Astro 7, to be hosted on GitHub Pages.
+Portfolio site for **Gerardo "Jero" Mantaring** (he/him). **On the site he goes by Jero**: "Jero Mantaring" everywhere, except the footer copyright, which keeps his legal name "Gerardo Mantaring". Astro 7, to be hosted on GitHub Pages.
 Run locally: `npm run dev` → http://localhost:4321/jero-s-portfolio/. `README.md` covers setup.
 
 **Repo and sharing**
@@ -12,7 +12,7 @@ Run locally: `npm run dev` → http://localhost:4321/jero-s-portfolio/. `README.
 
 ## About Gerardo
 
-**Roles:** writer, pixel artist, independent game developer, illustrator, sound designer, video editor, teacher/tutor. From the Philippines. His itch.io handle is **emptyhaven**. Whenever it's mentioned, write it as **emptyhaven (Gerardo M.)**. Press in 2013 credited him as "Jero".
+**Roles:** writer, pixel artist, independent game developer, illustrator, sound designer, video editor, teacher/tutor. From the Philippines. His itch.io handle is **emptyhaven**. Whenever it's mentioned, write it as **emptyhaven (Jero M.)**. Press in 2013 credited him as "Jero".
 
 **Education**
 - BS Interactive Entertainment & Multimedia Computing, De La Salle–College of Saint Benilde (May 2017 – July 2024)

@@ -203,9 +203,9 @@ const allCategories: Category[] = [
         tools: ['Unity'],
         link: { label: 'Play on itch.io', href: 'https://lazypeacock.itch.io/holojam-6-project' },
         facts: [
-          // from Gerardo's own jam comment: "I'm just the artist"; he also revamped the tilesheet edges
+          // from Jero's own jam comment: "I'm just the artist"; he also revamped the tilesheet edges
           { label: 'Role', value: 'Artist' },
-          { label: 'Team', value: 'LazyPeacock, emptyhaven (Gerardo M.), Luca Chuba, Spootie' },
+          { label: 'Team', value: 'LazyPeacock, emptyhaven (Jero M.), Luca Chuba, Spootie' },
           { label: 'Event', value: 'HoloJam #6' },
           { label: 'Platform', value: 'Browser' },
         ],
