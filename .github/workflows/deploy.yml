@@ -22,8 +22,11 @@ jobs:
     if: ${{ !github.event.repository.private }}
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: withastro/action@v3
+      - uses: actions/checkout@v7
+      # Astro 7 needs Node 22.23+; match the local Node 24
+      - uses: withastro/action@v6
+        with:
+          node-version: 24
 
   deploy:
     if: ${{ !github.event.repository.private }}
@@ -34,4 +37,4 @@ jobs:
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
       - id: deployment
-        uses: actions/deploy-pages@v4
+        uses: actions/deploy-pages@v5
