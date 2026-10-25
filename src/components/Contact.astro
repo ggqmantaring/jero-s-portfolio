@@ -1,0 +1,104 @@
+---
+import InkEdge from './InkEdge.astro';
+import { contact } from '../data/work';
+
+// first year of published work; the end year is the build year
+const SINCE = 2010;
+---
+
+<InkEdge id="edge-contact" flip />
+<footer class="contact" id="contact">
+  <p class="label contact-eyebrow">Contact</p>
+  <h2>let's work together<span class="block" aria-hidden="true"></span></h2>
+  <ul class="contact-list">
+    <li><span class="label">Email</span><a href={`mailto:${contact.email}`}>{contact.email}</a></li>
+    {contact.links.map((l) => (
+      <li>
+        <span class="label">{l.label}</span>
+        <a href={l.href} target="_blank" rel="noopener">{l.href.replace(/^https:\/\//, '').replace(/\/$/, '')} <span aria-hidden="true">↗</span></a>
+      </li>
+    ))}
+  </ul>
+  <p class="label colophon">© {SINCE}–{new Date().getFullYear()} Gerardo Mantaring. All rights reserved.</p>
+</footer>
+
+<style>
+  .contact {
+    background: var(--ink);
+    color: var(--on-ink);
+    padding: clamp(48px, 8vw, 96px) var(--gutter) 40px;
+  }
+
+  .contact > * {
+    max-width: calc(1320px - 2 * var(--gutter));
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  .contact-eyebrow {
+    color: var(--on-ink-muted);
+  }
+
+  .contact h2 {
+    margin-top: 16px;
+    font-size: clamp(48px, 8vw, 120px);
+    line-height: 0.95;
+  }
+
+  .block {
+    display: inline-block;
+    width: 0.32em;
+    height: 0.42em;
+    margin-left: 0.08em;
+    background: var(--amber);
+  }
+
+  .contact-list {
+    list-style: none;
+    padding: 0;
+    margin-top: 48px;
+    margin-bottom: 0;
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 24px;
+    border-top: 1px solid var(--on-ink-line);
+    padding-top: 24px;
+  }
+
+  .contact-list li {
+    display: grid;
+    gap: 6px;
+    min-width: 0;
+  }
+
+  .contact-list .label {
+    color: var(--on-ink-muted);
+  }
+
+  .contact-list a {
+    text-decoration: none;
+    overflow-wrap: anywhere;
+  }
+
+  .contact-list a:hover {
+    color: var(--peach);
+  }
+
+  .colophon {
+    margin-top: 72px;
+    color: var(--on-ink-muted);
+    letter-spacing: 0.16em;
+  }
+
+  @media (max-width: 900px) {
+    .contact-list {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+
+  @media (max-width: 620px) {
+    .contact-list {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>

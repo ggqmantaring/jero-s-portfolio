@@ -1,0 +1,645 @@
+---
+import Base from '../../layouts/Base.astro';
+import SiteNav from '../../components/SiteNav.astro';
+import Contact from '../../components/Contact.astro';
+import Plate from '../../components/Plate.astro';
+import { categories, type Category, type Project } from '../../data/work';
+
+export function getStaticPaths() {
+  return categories.flatMap((category) =>
+    category.projects.map((project, pi) => ({
+      params: { category: category.slug, project: project.slug },
+      props: {
+        category,
+        project,
+        prev: category.projects[pi - 1],
+        next: category.projects[pi + 1],
+      },
+    })),
+  );
+}
+
+interface Props {
+  category: Category;
+  project: Project;
+  prev?: Project;
+  next?: Project;
+}
+
+const { category, project, prev, next } = Astro.props;
+const base = import.meta.env.BASE_URL.replace(/\/$/, '');
+const images = project.images ?? [];
+const pieces = images.filter((img) => img.src).length;
+const pad = (n: number) => String(n).padStart(2, '0');
+const isPixel = category.slug === 'pixel-art';
+// games don't show a "Pieces" count
+const isGame = category.slug === 'game-development';
+const facts = project.facts ?? [];
+// with reviews, the gallery breaks after the first image so the quotes sit right under it
+const splitAt = project.reviews ? 1 : images.length;
+---
+
+<Base title={`${project.title} — ${category.name} — Gerardo Mantaring`} description={project.description}>
+  <header class="head">
+    <div class="glow" aria-hidden="true"></div>
+    <div class="wrap">
+    <SiteNav />
+
+    <div class="head-body">
+      <nav class="label crumbs" aria-label="Breadcrumb">
+        <a href={`${base}/`}>Home</a>
+        <span aria-hidden="true">/</span>
+        <a href={`${base}/${category.slug}`}>{category.name}</a>
+        <span aria-hidden="true">/</span>
+        <span aria-current="page" class="here">{project.title}</span>
+      </nav>
+
+      <div class="head-grid">
+        <div>
+          <h1>{project.title}<span class="block" aria-hidden="true"></span></h1>
+          <p class="tag">{project.tag}{project.year && <span class="year"> · {project.year}</span>}</p>
+          {project.description && <p class="desc">{project.description}</p>}
+
+          {project.awards && (
+            <ul class="awards">
+              {project.awards.map((a) => (
+                <li>
+                  <svg class="trophy" viewBox="0 0 9 9" width="18" height="18" aria-hidden="true" shape-rendering="crispEdges">
+                    <path d="M1 0h7v1h1v2h-1v1h-1v1h-2v2h2v2h-6v-2h2v-2h-2v-1h-1v-1h-1v-2h1z" />
+                    <path class="shine" d="M2 1h1v2h-1z" />
+                  </svg>
+                  <span class="award-title">{a.title}</span>
+                  {a.href ? <a href={a.href} target="_blank" rel="noopener">{a.detail} ↗</a> : <span>{a.detail}</span>}
+                </li>
+              ))}
+            </ul>
+          )}
+
+          {project.link && (
+            <a class="btn" href={project.link.href} target="_blank" rel="noopener">
+              &gt; {project.link.label} <span aria-hidden="true">↗</span>
+            </a>
+          )}
+        </div>
+
+        <dl class:list={['meta', { wide: facts.length > 0 }]}>
+          {project.tools && (
+            <div>
+              <dt class="label">Made in</dt>
+              <dd>{project.tools.join(', ')}</dd>
+            </div>
+          )}
+          {facts.map((f) => (
+            <div>
+              <dt class="label">{f.label}</dt>
+              <dd>{f.value}</dd>
+            </div>
+          ))}
+          {project.year && (
+            <div class="year">
+              <dt class="label">Year</dt>
+              <dd>{project.year}</dd>
+            </div>
+          )}
+          <div>
+            <dt class="label">Field</dt>
+            <dd>{category.name}</dd>
+          </div>
+          {!isGame && pieces > 0 && (
+            <div>
+              <dt class="label">Pieces</dt>
+              <dd class="big">{pad(pieces)}</dd>
+            </div>
+          )}
+        </dl>
+      </div>
+    </div>
+    </div>
+  </header>
+
+  <main class="body">
+    {project.youtube && (
+      <figure class="video">
+        <div class="video-frame">
+          <iframe
+            src={`https://www.youtube-nocookie.com/embed/${project.youtube}?rel=0`}
+            title={`${project.title} (YouTube video)`}
+            loading="lazy"
+            allow="accelerometer; encrypted-media; gyroscope; picture-in-picture; fullscreen"
+            referrerpolicy="strict-origin-when-cross-origin"
+            allowfullscreen
+          ></iframe>
+        </div>
+      </figure>
+    )}
+
+    {images.length > 0 ? (
+      <ol class="plates">
+        {images.slice(0, splitAt).map((img, i) => (
+          <Plate img={img} index={i} title={project.title} pixel={isPixel} play={i === 0 ? project.link : undefined} />
+        ))}
+      </ol>
+    ) : (
+      !project.youtube && <p class="empty">Images coming soon.</p>
+    )}
+
+    {project.reviews && (
+      <section class="reviews" aria-labelledby="reviews-label">
+        <p class="label" id="reviews-label">{project.reviewsTitle ?? 'What players said'}</p>
+        <ul>
+          {project.reviews.map((r) => (
+            <li>
+              <figure>
+                <blockquote>{r.quote}</blockquote>
+                <figcaption>
+                  — {r.author}{r.note && <span class="review-note">, {r.note}</span>}
+                </figcaption>
+              </figure>
+            </li>
+          ))}
+        </ul>
+        {project.reviewsSource && (
+          <a class="reviews-source" href={project.reviewsSource.href} target="_blank" rel="noopener">
+            {project.reviewsSource.label} <span aria-hidden="true">↗</span>
+          </a>
+        )}
+      </section>
+    )}
+
+    {images.length > splitAt && (
+      <ol class="plates" start={splitAt + 1}>
+        {images.slice(splitAt).map((img, i) => (
+          <Plate img={img} index={i + splitAt} title={project.title} pixel={isPixel} />
+        ))}
+      </ol>
+    )}
+
+    {project.controls && (
+      <section class="controls" aria-labelledby="controls-label">
+        <p class="label" id="controls-label">How to play</p>
+        <dl>
+          {project.controls.map((c) => (
+            <div>
+              <dt><kbd>{c.keys}</kbd></dt>
+              <dd>{c.action}</dd>
+            </div>
+          ))}
+        </dl>
+      </section>
+    )}
+
+    <nav class="pager" aria-label={`More ${category.name}`}>
+      {prev ? (
+        <a class="prev" href={`${base}/${category.slug}/${prev.slug}`}>
+          <span class="label">← Previous</span>
+          <span class="pager-title">{prev.title}</span>
+        </a>
+      ) : <span></span>}
+      <a class="all label" href={`${base}/${category.slug}`}>All {category.short.toLowerCase()}</a>
+      {next ? (
+        <a class="next" href={`${base}/${category.slug}/${next.slug}`}>
+          <span class="label">Next →</span>
+          <span class="pager-title">{next.title}</span>
+        </a>
+      ) : <span></span>}
+    </nav>
+  </main>
+
+  <Contact />
+</Base>
+
+<style>
+  /* ---------- dark header ---------- */
+  .head {
+    position: relative;
+    overflow: hidden;
+    background: var(--ink);
+    color: var(--on-ink);
+    padding: 28px var(--gutter) clamp(56px, 7vw, 96px);
+  }
+
+  .glow {
+    position: absolute;
+    inset: 0;
+    background:
+      radial-gradient(40% 30% at 82% 70%, rgba(242, 191, 147, 0.32), transparent 70%),
+      radial-gradient(50% 35% at 45% 80%, rgba(47, 74, 190, 0.45), transparent 72%),
+      linear-gradient(180deg, var(--ink) 0%, var(--ink-2) 60%, var(--ink) 100%);
+    filter: blur(28px);
+    transform: scale(1.2);
+    pointer-events: none;
+  }
+
+  .head-body {
+    margin-top: clamp(56px, 9vw, 112px);
+  }
+
+  .crumbs {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    color: var(--on-ink-muted);
+  }
+
+  .crumbs a {
+    text-decoration: none;
+  }
+
+  .crumbs a:hover {
+    color: var(--peach);
+  }
+
+  .crumbs .here {
+    color: var(--on-ink);
+  }
+
+  .head-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 48px;
+    align-items: end;
+    margin-top: 24px;
+  }
+
+  h1 {
+    font-size: clamp(56px, 10vw, 156px);
+    line-height: 0.92;
+    letter-spacing: -0.01em;
+  }
+
+  .block {
+    display: inline-block;
+    width: 0.32em;
+    height: 0.42em;
+    margin-left: 0.08em;
+    background: var(--amber);
+  }
+
+  .tag {
+    margin-top: 20px;
+    color: var(--peach);
+  }
+
+  .desc {
+    margin-top: 20px;
+    max-width: 60ch;
+    color: var(--on-ink);
+  }
+
+  .meta {
+    display: grid;
+    gap: 24px;
+    margin: 0;
+    min-width: 200px;
+  }
+
+  .meta dt {
+    color: var(--on-ink-muted);
+  }
+
+  .meta dd {
+    margin: 4px 0 0;
+  }
+
+  .meta .big {
+    font-family: var(--font-pixel);
+    font-size: 56px;
+    line-height: 1;
+  }
+
+  /* games carry more facts: lay them out in two columns */
+  .meta.wide {
+    grid-template-columns: repeat(2, minmax(0, 200px));
+    gap: 24px 40px;
+  }
+
+  .awards {
+    list-style: none;
+    margin: 28px 0 0;
+    padding: 0;
+    display: grid;
+    gap: 8px;
+  }
+
+  .awards li {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 4px 12px;
+    font-size: 14px;
+  }
+
+  /* pixel trophy that glows gently */
+  .trophy {
+    flex: none;
+    align-self: center;
+    fill: var(--amber);
+  }
+
+  .trophy .shine {
+    fill: var(--peach);
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .trophy {
+      animation: trophy-glow 2.4s ease-in-out infinite;
+    }
+
+    .awards li:nth-child(2) .trophy {
+      animation-delay: 0.6s;
+    }
+  }
+
+  @keyframes trophy-glow {
+    0%, 100% { filter: drop-shadow(0 0 0 rgba(232, 150, 63, 0)); transform: scale(1); }
+    50% { filter: drop-shadow(0 0 6px rgba(232, 150, 63, 0.85)); transform: scale(1.12); }
+  }
+
+  .award-title {
+    font-weight: 500;
+  }
+
+  .awards span:not(.award-title),
+  .awards a {
+    color: var(--on-ink-muted);
+  }
+
+  .awards a {
+    text-decoration: none;
+  }
+
+  .awards a:hover {
+    color: var(--peach);
+  }
+
+  .btn {
+    display: inline-block;
+    margin-top: 32px;
+    padding: 12px 22px;
+    border: 1px solid var(--amber);
+    background: var(--amber);
+    color: var(--ink);
+    text-decoration: none;
+    font-weight: 500;
+    transition: background-color 160ms ease, color 160ms ease;
+  }
+
+  /* hover: the hero's darkest ink */
+  .btn:hover {
+    background: var(--ink);
+    color: var(--amber);
+  }
+
+  /* ---------- gallery: white specimen plates on cream (Plate.astro) ---------- */
+  .body {
+    max-width: 1320px;
+    margin: 0 auto;
+    padding: clamp(56px, 7vw, 96px) var(--gutter) clamp(140px, 16vw, 200px);
+  }
+
+  .plates {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+    gap: clamp(32px, 4vw, 56px) 24px;
+  }
+
+  /* embedded YouTube video, 16:9 */
+  .video {
+    margin: 0;
+  }
+
+  .video-frame {
+    position: relative;
+    aspect-ratio: 16 / 9;
+    background: var(--ink);
+    border: 1px solid var(--on-cream-line);
+  }
+
+  .video-frame iframe {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    border: 0;
+  }
+
+  .video + .plates {
+    margin-top: clamp(56px, 7vw, 88px);
+  }
+
+  /* the gallery continues after the reviews */
+  .plates + .plates,
+  .reviews + .plates {
+    margin-top: clamp(56px, 7vw, 88px);
+  }
+
+  /* ---------- reviews (sit between the first image and the rest) ---------- */
+  .reviews {
+    margin-top: clamp(48px, 6vw, 72px);
+  }
+
+  .reviews figure {
+    margin: 0;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .reviews li:only-child {
+    grid-column: 1 / -1;
+  }
+
+  .reviews > .label {
+    color: var(--on-cream-muted);
+  }
+
+  .reviews ul {
+    list-style: none;
+    margin: 20px 0 0;
+    padding: 0;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 24px;
+  }
+
+  .reviews figure {
+    position: relative;
+    padding: 28px 28px 24px 56px;
+    border-top: 2px solid var(--on-cream);
+    background: var(--cream-2);
+  }
+
+  /* pixel quotation mark */
+  .reviews figure::before {
+    content: '“';
+    position: absolute;
+    top: 14px;
+    left: 18px;
+    font-family: var(--font-pixel);
+    font-size: 48px;
+    line-height: 1;
+    color: var(--amber);
+  }
+
+  blockquote {
+    margin: 0;
+    font-size: 16px;
+    line-height: 1.6;
+    text-wrap: pretty;
+  }
+
+  .reviews figcaption {
+    display: block;
+    margin-top: auto;
+    padding-top: 16px;
+    font-size: 13px;
+    font-weight: 500;
+  }
+
+  .review-note {
+    font-weight: 400;
+    color: var(--on-cream-muted);
+  }
+
+  .reviews-source {
+    display: inline-block;
+    margin-top: 20px;
+    padding-bottom: 4px;
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--navy);
+    text-decoration: none;
+    border-bottom: 1px solid currentColor;
+  }
+
+  /* ---------- how to play ---------- */
+  .controls {
+    margin-top: clamp(56px, 8vw, 96px);
+  }
+
+  .controls .label {
+    color: var(--on-cream-muted);
+  }
+
+  .controls dl {
+    margin: 16px 0 0;
+    border-top: 1px solid var(--on-cream-line);
+  }
+
+  .controls dl > div {
+    display: grid;
+    grid-template-columns: minmax(0, 260px) 1fr;
+    gap: 16px;
+    padding: 12px 0;
+    border-bottom: 1px solid var(--on-cream-line);
+  }
+
+  .controls dd {
+    margin: 0;
+  }
+
+  kbd {
+    font-family: var(--font-mono);
+    font-size: 13px;
+    padding: 2px 8px;
+    border: 1px solid var(--on-cream-line);
+    border-bottom-width: 2px;
+    background: var(--cream-2);
+  }
+
+  .empty {
+    padding: 80px 0;
+    color: var(--on-cream-muted);
+  }
+
+  /* ---------- prev / next ---------- */
+  .pager {
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    align-items: center;
+    gap: 24px;
+    margin-top: clamp(72px, 10vw, 120px);
+    padding-top: 28px;
+    border-top: 1px solid var(--on-cream-line);
+  }
+
+  .pager a {
+    text-decoration: none;
+  }
+
+  .prev,
+  .next {
+    display: grid;
+    gap: 4px;
+  }
+
+  .next {
+    text-align: right;
+  }
+
+  .pager .label {
+    color: var(--on-cream-muted);
+  }
+
+  .pager-title {
+    font-weight: 500;
+  }
+
+  .prev:hover .pager-title,
+  .next:hover .pager-title {
+    text-decoration: underline;
+    text-underline-offset: 4px;
+  }
+
+  .all {
+    color: var(--navy) !important;
+    border-bottom: 1px solid currentColor;
+    padding-bottom: 4px;
+  }
+
+  @media (max-width: 860px) {
+    .head-grid {
+      grid-template-columns: 1fr;
+      gap: 32px;
+    }
+
+    .meta,
+    .meta.wide {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 24px 32px;
+      padding-top: 24px;
+      border-top: 1px solid var(--on-ink-line);
+    }
+
+    .meta .big {
+      font-size: 32px;
+    }
+  }
+
+  @media (max-width: 720px) {
+    .plates {
+      grid-template-columns: 1fr;
+    }
+
+    .pager {
+      grid-template-columns: 1fr 1fr;
+    }
+
+    .controls dl > div {
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    }
+
+    .reviews ul {
+      grid-template-columns: 1fr;
+    }
+
+    .all {
+      grid-column: 1 / -1;
+      grid-row: 2;
+      justify-self: center;
+    }
+  }
+</style>

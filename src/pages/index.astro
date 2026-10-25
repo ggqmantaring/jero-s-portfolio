@@ -1,0 +1,383 @@
+---
+import Base from '../layouts/Base.astro';
+import Hero from '../components/Hero.astro';
+import WorkSection from '../components/WorkSection.astro';
+import Contact from '../components/Contact.astro';
+import { categories } from '../data/work';
+
+const base = import.meta.env.BASE_URL.replace(/\/$/, '');
+const pad = (n: number) => String(n).padStart(2, '0');
+const aboutNumber = pad(categories.length + 1);
+const totalProjects = categories.reduce((n, c) => n + c.projects.filter((p) => !p.placeholder).length, 0);
+
+const index = [
+  ...categories.map((c, i) => ({ id: c.slug, number: pad(i + 1), name: c.short })),
+  { id: 'about', number: aboutNumber, name: 'About' },
+];
+
+const highlights = [
+  ['BA Creative Writing', 'University of the Philippines Diliman'],
+  ['BS Interactive Entertainment & Multimedia Computing', 'De La Salle–College of Saint Benilde'],
+  ['First Place, Poetry', 'Amelia Lapeña Bonifacio Award, for “Insects”'],
+  ['Front Page Feature', 'GameJolt, for “to the stars”'],
+  ['Featured Game', 'IndieGames.com, for “to the stars”'],
+];
+---
+
+<Base title="Gerardo Mantaring — Words, Pixels, Games">
+  <Hero />
+
+  <main class="ledger" id="work">
+    <nav class="index" aria-label="Sections" data-index>
+      <button class="index-toggle" type="button" aria-expanded="false" aria-controls="index-list" data-index-toggle>
+        <span class="label" data-index-current>{index[0].number} — {index[0].name}</span>
+        <span class="chev" aria-hidden="true">▾</span>
+      </button>
+
+      <p class="label index-title">Index</p>
+      <ol class="index-list" id="index-list">
+        {index.map((item) => (
+          <li>
+            <a class="label" href={`#${item.id}`} data-index-link={item.id}>
+              {item.number} — {item.name}
+            </a>
+          </li>
+        ))}
+      </ol>
+
+      <dl class="index-meta label">
+        <div><dt class="visually-hidden">Reference</dt><dd>GM-2010</dd></div>
+        <div><dt class="visually-hidden">Contents</dt><dd>{categories.length} fields · {totalProjects} works</dd></div>
+        <div><dt class="visually-hidden">Status</dt><dd class="meta-open">Open to work</dd></div>
+      </dl>
+    </nav>
+
+    <div class="sections">
+      {categories.map((c, i) => <WorkSection category={c} number={pad(i + 1)} />)}
+
+      <section class="about" id="about" data-section aria-labelledby="about-label">
+        <p class="label eyebrow" id="about-label">{aboutNumber} — About</p>
+        <div class="about-grid">
+          <figure class="portrait">
+            <img
+              src={`${base}/images/gerardo-portrait.jpg`}
+              alt="Illustrated self-portrait of Gerardo in a yellow jacket and red plaid shirt, wearing earphones"
+              width="799"
+              height="599"
+              loading="lazy"
+            />
+          </figure>
+          <div class="about-copy">
+            <h2>One person, many trades.</h2>
+            <p>
+              Gerardo Mantaring trained in poetry, fiction, and comic book writing at UP Diliman,
+              then studied Interactive Entertainment and Multimedia Computing at De La Salle–College
+              of Saint Benilde. Since then: illustration and self-published zines, independent games,
+              chiptune and sound design, video editing, and teaching.
+            </p>
+            <ul class="highlights">
+              {highlights.map(([what, where]) => (
+                <li>
+                  <span class="hl-what">{what}</span>
+                  <span class="hl-where">{where}</span>
+                </li>
+              ))}
+            </ul>
+            <a class="more" href={`${base}/about`}>More about Gerardo <span aria-hidden="true">→</span></a>
+          </div>
+        </div>
+      </section>
+    </div>
+  </main>
+
+  <Contact />
+</Base>
+
+<script>
+  // Index: highlight the section in view, and drive the mobile dropdown
+  const nav = document.querySelector<HTMLElement>('[data-index]')!;
+  const toggle = nav.querySelector<HTMLButtonElement>('[data-index-toggle]')!;
+  const current = nav.querySelector<HTMLElement>('[data-index-current]')!;
+  const links = [...nav.querySelectorAll<HTMLAnchorElement>('[data-index-link]')];
+  const sections = [...document.querySelectorAll<HTMLElement>('[data-section]')];
+
+  const setOpen = (open: boolean) => {
+    nav.toggleAttribute('data-open', open);
+    toggle.setAttribute('aria-expanded', String(open));
+  };
+
+  toggle.addEventListener('click', () => setOpen(!nav.hasAttribute('data-open')));
+  links.forEach((l) => l.addEventListener('click', () => setOpen(false)));
+  document.addEventListener('keydown', (e) => e.key === 'Escape' && setOpen(false));
+  document.addEventListener('click', (e) => {
+    if (!nav.contains(e.target as Node)) setOpen(false);
+  });
+
+  const activate = (id: string) => {
+    links.forEach((l) => {
+      const on = l.dataset.indexLink === id;
+      if (on) {
+        l.setAttribute('aria-current', 'true');
+        current.textContent = l.textContent!.trim();
+      } else {
+        l.removeAttribute('aria-current');
+      }
+    });
+  };
+
+  const observer = new IntersectionObserver(
+    (entries) => {
+      entries.forEach((e) => e.isIntersecting && activate(e.target.id));
+    },
+    { rootMargin: '-35% 0px -60% 0px' },
+  );
+  sections.forEach((s) => observer.observe(s));
+</script>
+
+<style>
+  .ledger {
+    display: grid;
+    grid-template-columns: var(--index-w) minmax(0, 1fr);
+    gap: clamp(32px, 6vw, 96px);
+    max-width: 1320px;
+    margin: 0 auto;
+    padding: clamp(64px, 8vw, 112px) var(--gutter) clamp(140px, 16vw, 200px);
+  }
+
+  /* ---------- index (ledger) ---------- */
+  .index {
+    position: sticky;
+    top: 40px;
+    align-self: start;
+  }
+
+  .index-toggle {
+    display: none;
+  }
+
+  .index-title {
+    margin-bottom: 20px;
+  }
+
+  .index-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    border-top: 1px solid var(--on-cream-line);
+  }
+
+  .index-list li {
+    border-bottom: 1px solid var(--on-cream-line);
+  }
+
+  .index-list a {
+    position: relative;
+    display: block;
+    padding: 9px 0;
+    text-decoration: none;
+    color: var(--on-cream-muted);
+    transition: color 160ms ease, padding-left 200ms ease;
+  }
+
+  .index-list a::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 50%;
+    width: 0;
+    height: 1px;
+    background: var(--amber);
+    transition: width 200ms ease;
+  }
+
+  .index-list a:hover,
+  .index-list a[aria-current] {
+    color: var(--on-cream);
+  }
+
+  .index-list a[aria-current] {
+    padding-left: 22px;
+  }
+
+  .index-list a[aria-current]::before {
+    width: 14px;
+  }
+
+  .index-meta {
+    display: grid;
+    gap: 6px;
+    margin: 48px 0 0;
+    color: var(--on-cream-muted);
+    letter-spacing: 0.16em;
+  }
+
+  .index-meta dd {
+    margin: 0;
+  }
+
+  .meta-open::before {
+    content: '';
+    display: inline-block;
+    width: 6px;
+    height: 6px;
+    margin-right: 8px;
+    vertical-align: 1px;
+    background: var(--amber);
+  }
+
+  /* ---------- about teaser ---------- */
+  .about {
+    padding-top: clamp(56px, 8vw, 96px);
+    border-top: 1px solid var(--on-cream-line);
+    scroll-margin-top: 24px;
+  }
+
+  .eyebrow {
+    color: var(--on-cream-muted);
+  }
+
+  .about-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 5fr) minmax(0, 7fr);
+    gap: clamp(28px, 4vw, 56px);
+    margin-top: 28px;
+    align-items: start;
+  }
+
+  .portrait {
+    margin: 0;
+    border: 1px solid var(--on-cream-line);
+  }
+
+  .about h2 {
+    font-size: clamp(28px, 3.6vw, 44px);
+  }
+
+  .about-copy p {
+    margin-top: 16px;
+    color: var(--on-cream-muted);
+    max-width: 56ch;
+  }
+
+  .highlights {
+    list-style: none;
+    margin: 28px 0 0;
+    padding: 0;
+    border-top: 1px solid var(--on-cream-line);
+  }
+
+  .highlights li {
+    display: grid;
+    gap: 2px;
+    padding: 12px 0;
+    border-bottom: 1px solid var(--on-cream-line);
+  }
+
+  .hl-what {
+    font-weight: 500;
+    font-size: 14px;
+  }
+
+  .hl-where {
+    font-size: 13px;
+    color: var(--on-cream-muted);
+  }
+
+  .more {
+    display: inline-block;
+    margin-top: 32px;
+    padding: 10px 0;
+    font-weight: 500;
+    color: var(--navy);
+    text-decoration: none;
+    border-bottom: 1px solid currentColor;
+  }
+
+  .more span {
+    display: inline-block;
+    transition: transform 180ms ease;
+  }
+
+  .more:hover span {
+    transform: translateX(4px);
+  }
+
+  /* ---------- tablet & phone ---------- */
+  @media (max-width: 900px) {
+    .ledger {
+      grid-template-columns: 1fr;
+      gap: 0;
+      padding-top: 32px;
+    }
+
+    /* the ledger index collapses into a sticky "you are here" bar */
+    .index {
+      top: 0;
+      z-index: 20;
+      margin: 0 calc(-1 * var(--gutter)) 40px;
+      background: var(--cream);
+      border-bottom: 1px solid var(--on-cream-line);
+    }
+
+    .index-toggle {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      width: 100%;
+      height: var(--mobile-bar-h);
+      padding: 0 var(--gutter);
+      border: 0;
+      background: transparent;
+      color: var(--on-cream);
+      font: inherit;
+      cursor: pointer;
+    }
+
+    .chev {
+      transition: transform 200ms ease;
+    }
+
+    .index[data-open] .chev {
+      transform: rotate(180deg);
+    }
+
+    .index-title,
+    .index-meta {
+      display: none;
+    }
+
+    .index-list {
+      display: none;
+      position: absolute;
+      left: 0;
+      right: 0;
+      top: 100%;
+      padding: 0 var(--gutter) 12px;
+      background: var(--cream);
+      border-bottom: 1px solid var(--on-cream-line);
+      box-shadow: 0 18px 30px -18px rgba(11, 12, 17, 0.35);
+    }
+
+    .index[data-open] .index-list {
+      display: block;
+    }
+
+    .index-list a {
+      padding: 12px 0;
+    }
+
+    .about {
+      scroll-margin-top: calc(var(--mobile-bar-h) + 16px);
+    }
+  }
+
+  @media (max-width: 620px) {
+    .about-grid {
+      grid-template-columns: 1fr;
+    }
+
+    .portrait {
+      max-width: 360px;
+    }
+  }
+</style>

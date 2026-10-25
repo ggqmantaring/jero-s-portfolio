@@ -1,0 +1,27 @@
+# build output
+dist/
+.astro/
+
+# dependencies
+node_modules/
+
+# logs
+npm-debug.log*
+
+# design source files (work in progress; export finished images into public/)
+*.ai
+*.psd
+*.aseprite
+*.mdp
+
+# local tool settings
+.claude/
+.impeccable/
+
+# environment
+.env
+.env.*
+
+# os
+.DS_Store
+Thumbs.db

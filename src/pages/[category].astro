@@ -1,0 +1,47 @@
+---
+// Stub category page so "See all" links resolve. To be designed properly later.
+import Base from '../layouts/Base.astro';
+import WorkSection from '../components/WorkSection.astro';
+import { categories, type Category } from '../data/work';
+
+export function getStaticPaths() {
+  return categories.map((category, i) => ({
+    params: { category: category.slug },
+    props: { category, number: String(i + 1).padStart(2, '0') },
+  }));
+}
+
+interface Props {
+  category: Category;
+  number: string;
+}
+
+const { category, number } = Astro.props;
+const base = import.meta.env.BASE_URL.replace(/\/$/, '');
+---
+
+<Base title={`${category.name} — Gerardo Mantaring`}>
+  <main class="page">
+    <a class="label back" href={`${base}/#${category.slug}`}>← Back to index</a>
+    <WorkSection category={category} number={number} all />
+  </main>
+</Base>
+
+<style>
+  .page {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 40px var(--gutter) 120px;
+  }
+
+  .back {
+    display: inline-block;
+    margin-bottom: 56px;
+    color: var(--on-cream-muted);
+    text-decoration: none;
+  }
+
+  .back:hover {
+    color: var(--on-cream);
+  }
+</style>

@@ -1,0 +1,151 @@
+---
+import type { ProjectImage } from '../data/work';
+
+// One gallery image on a white "specimen plate", captioned "Fig. 01".
+// Without `img.src` it renders a dashed "Image coming soon" stand-in of the same shape.
+interface Props {
+  img: ProjectImage;
+  /** 0-based position in the gallery; sets the Fig. number. */
+  index: number;
+  title: string;
+  /** Pixel art: keep pixels square when scaled. */
+  pixel?: boolean;
+  /** Optional button laid over the image, e.g. "Play on itch.io". */
+  play?: { label: string; href: string };
+}
+
+const { img, index, title, pixel = false, play } = Astro.props;
+const base = import.meta.env.BASE_URL.replace(/\/$/, '');
+const fig = String(index + 1).padStart(2, '0');
+---
+
+<li class={`span-${img.span ?? 2}`}>
+  <figure>
+    {img.src ? (
+      <div class:list={['plate', { pixel }]}>
+        <div class="shot" style={`max-width: ${img.width}px`}>
+          <img
+            src={`${base}/${img.src}`}
+            alt={`${title}: ${img.caption}`}
+            width={img.width}
+            height={img.height}
+            loading={index < 2 ? 'eager' : 'lazy'}
+            decoding="async"
+          />
+          {play && (
+            <a class="play" href={play.href} target="_blank" rel="noopener">
+              &gt; {play.label} <span aria-hidden="true">↗</span>
+            </a>
+          )}
+        </div>
+      </div>
+    ) : (
+      <div class="plate plate-empty" style={`aspect-ratio: ${img.width} / ${img.height}`}>
+        <span class="label">Image coming soon</span>
+      </div>
+    )}
+    <figcaption>
+      <span class="label fig">Fig. {fig}</span>
+      <span>{img.caption}</span>
+    </figcaption>
+  </figure>
+</li>
+
+<style>
+  .span-2 { grid-column: span 2; }
+  .span-3 { grid-column: span 3; }
+  .span-6 { grid-column: span 6; }
+
+  /* plates in the same row share a height, so captions line up */
+  figure {
+    margin: 0;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .plate {
+    position: relative;
+    flex: 1;
+    display: grid;
+    place-items: center;
+    background: #fff;
+    border: 1px solid var(--on-cream-line);
+    padding: clamp(8px, 2vw, 24px);
+  }
+
+  /* fill the plate, but never beyond native size (set inline on .shot) */
+  .shot {
+    position: relative;
+    width: 100%;
+  }
+
+  .shot img {
+    width: 100%;
+    height: auto;
+  }
+
+  /* keep pixels square at any size */
+  .pixel img {
+    image-rendering: pixelated;
+  }
+
+  /* button laid over the bottom-left of the image */
+  .play {
+    position: absolute;
+    left: clamp(12px, 2vw, 24px);
+    bottom: clamp(12px, 2vw, 24px);
+    white-space: nowrap;
+    padding: 12px 22px;
+    background: var(--amber);
+    border: 1px solid var(--amber);
+    color: var(--ink);
+    font-weight: 500;
+    text-decoration: none;
+    box-shadow: 0 10px 24px -10px rgba(11, 12, 17, 0.6);
+    transition: background-color 160ms ease, color 160ms ease;
+  }
+
+  /* hover: the hero's darkest ink */
+  .play:hover {
+    background: var(--ink);
+    color: var(--amber);
+  }
+
+  figcaption {
+    display: flex;
+    align-items: baseline;
+    gap: 14px;
+    margin-top: 12px;
+    font-size: 14px;
+  }
+
+  .fig {
+    flex: none;
+    color: var(--on-cream-muted);
+  }
+
+  /* stand-in for screenshots that haven't arrived yet */
+  .plate-empty {
+    background:
+      repeating-linear-gradient(135deg, transparent 0 10px, rgba(22, 23, 29, 0.04) 10px 11px),
+      var(--cream-2);
+    border-style: dashed;
+    color: var(--on-cream-muted);
+  }
+
+  @media (max-width: 720px) {
+    .span-2,
+    .span-3,
+    .span-6 {
+      grid-column: auto;
+    }
+
+    .play {
+      left: 10px;
+      bottom: 10px;
+      padding: 8px 14px;
+      font-size: 13px;
+    }
+  }
+</style>

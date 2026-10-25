@@ -1,0 +1,59 @@
+---
+// Ragged ink-bleed edge between dark and cream bands, after the ink-on-paper mood image.
+// `color` is the band it drips from (a literal color; SVG attributes can't read CSS vars);
+// `flip` makes the ink rise from below instead of dripping down.
+interface Props {
+  id: string;
+  color?: string;
+  flip?: boolean;
+}
+
+const { id, color = '#0b0c11', flip = false } = Astro.props;
+---
+
+<svg
+  class:list={['ink-edge', { flip }]}
+  viewBox="0 0 1440 140"
+  preserveAspectRatio="none"
+  aria-hidden="true"
+>
+  <defs>
+    <!-- streaky noise: changes fast across x, slowly down y, so the edge runs in vertical drips -->
+    <!-- G is pinned to 0.5 so pixels only move vertically -->
+    <filter id={`${id}-feather`} x="-5%" y="-50%" width="110%" height="200%">
+      <feTurbulence type="fractalNoise" baseFrequency="0.11 0.002" numOctaves="4" seed="3" />
+      <feColorMatrix values="1 0 0 0 0  0 0 0 0 0.5  0 0 0 0 0  0 0 0 0 1" result="noise" />
+      <feDisplacementMap in="SourceGraphic" in2="noise" scale="110" xChannelSelector="G" yChannelSelector="R" result="d" />
+      <feGaussianBlur in="d" stdDeviation="0.6 7" />
+    </filter>
+    <filter id={id} x="-5%" y="-50%" width="110%" height="200%">
+      <feTurbulence type="fractalNoise" baseFrequency="0.07 0.002" numOctaves="4" seed="11" />
+      <feColorMatrix values="1 0 0 0 0  0 0 0 0 0.5  0 0 0 0 0  0 0 0 0 1" result="noise" />
+      <feDisplacementMap in="SourceGraphic" in2="noise" scale="70" xChannelSelector="G" yChannelSelector="R" result="d" />
+      <feGaussianBlur in="d" stdDeviation="0.3 3" />
+    </filter>
+  </defs>
+  <!-- warm brown fringe, like ink feathering into paper -->
+  <rect x="-80" y="-80" width="1600" height="150" fill="#3a2e26" opacity="0.55" filter={`url(#${id}-feather)`} />
+  <rect x="-80" y="-80" width="1600" height="135" fill={color} filter={`url(#${id})`} />
+</svg>
+
+<style>
+  .ink-edge {
+    --h: clamp(64px, 9vw, 140px);
+    display: block;
+    width: 100%;
+    height: var(--h);
+    margin-bottom: calc(-1 * var(--h));
+    position: relative;
+    z-index: 1;
+    pointer-events: none;
+  }
+
+  .flip {
+    transform: scaleY(-1);
+    /* -1px closes a hairline gap against the band below */
+    margin-bottom: -1px;
+    margin-top: calc(-1 * var(--h));
+  }
+</style>

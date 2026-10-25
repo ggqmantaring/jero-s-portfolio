@@ -1,0 +1,217 @@
+---
+import { categories } from '../data/work';
+import SiteNav from './SiteNav.astro';
+
+// counted from src/data/work.ts at build time, so these follow the project list
+const totalProjects = categories.reduce((n, c) => n + c.projects.filter((p) => !p.placeholder).length, 0);
+const pad = (n: number) => String(n).padStart(2, '0');
+---
+
+<header class="hero">
+  <div class="glow" aria-hidden="true"></div>
+
+  <div class="wrap">
+  <SiteNav />
+
+  <div class="hero-body">
+    <div class="hero-copy">
+      <h1>small worlds, made by hand<span class="block" aria-hidden="true"></span></h1>
+      <p class="lede">
+        Gerardo Mantaring is a writer, pixel artist, and independent game developer from the
+        Philippines, building small worlds out of words, pixels, and sound.
+      </p>
+      <div class="actions">
+        <a class="btn" href="#contact">&gt; let's work together</a>
+        <a class="ghost" href="#work">browse my work <span aria-hidden="true">▸</span></a>
+      </div>
+    </div>
+
+    <dl class="status">
+      <div>
+        <dt class="label">On file</dt>
+        <dd class="big">{pad(totalProjects)}<span class="unit">projects</span></dd>
+      </div>
+      <div>
+        <dt class="label">Disciplines</dt>
+        <dd>{pad(categories.length)} fields</dd>
+      </div>
+      <div>
+        <dt class="label">Status</dt>
+        <dd class="open"><span class="pulse" aria-hidden="true"></span>open to new opportunities</dd>
+      </div>
+    </dl>
+  </div>
+  </div>
+</header>
+
+<style>
+  .hero {
+    position: relative;
+    overflow: hidden;
+    background: var(--ink);
+    color: var(--on-ink);
+    padding: 28px var(--gutter) clamp(64px, 9vw, 120px);
+  }
+
+  /* blurred light leak, after the navy/peach mood image */
+  .glow {
+    position: absolute;
+    inset: 0;
+    background:
+      radial-gradient(38% 18% at 78% 62%, rgba(242, 191, 147, 0.55), transparent 70%),
+      radial-gradient(30% 14% at 30% 74%, rgba(242, 191, 147, 0.28), transparent 70%),
+      radial-gradient(46% 22% at 52% 52%, rgba(47, 74, 190, 0.55), transparent 72%),
+      radial-gradient(60% 30% at 12% 70%, rgba(31, 42, 120, 0.6), transparent 70%),
+      linear-gradient(180deg, var(--ink) 0%, var(--ink-2) 55%, var(--ink) 100%);
+    filter: blur(28px);
+    transform: rotate(-8deg) scale(1.25);
+    opacity: 0.9;
+    pointer-events: none;
+  }
+
+  .block {
+    display: inline-block;
+    width: 0.32em;
+    height: 0.42em;
+    margin-left: 0.08em;
+    background: var(--amber);
+  }
+
+  .hero-body {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 48px;
+    align-items: end;
+    margin-top: clamp(72px, 12vw, 150px);
+  }
+
+  h1 {
+    font-size: clamp(48px, 9.4vw, 148px);
+    line-height: 0.92;
+    letter-spacing: -0.01em;
+    max-width: 11ch;
+  }
+
+  .lede {
+    margin-top: 28px;
+    max-width: 46ch;
+    font-size: clamp(15px, 1.4vw, 18px);
+    color: var(--on-ink);
+  }
+
+  .actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 20px 32px;
+    margin-top: 36px;
+  }
+
+  .btn {
+    display: inline-block;
+    padding: 12px 22px;
+    border: 1px solid var(--amber);
+    background: var(--amber);
+    color: var(--ink);
+    text-decoration: none;
+    font-weight: 500;
+    transition: background-color 160ms ease, color 160ms ease;
+  }
+
+  /* hover: the hero's darkest ink */
+  .btn:hover {
+    background: var(--ink);
+    color: var(--amber);
+  }
+
+  .ghost {
+    text-decoration: none;
+  }
+
+  .ghost span {
+    color: var(--amber);
+  }
+
+  .ghost:hover {
+    color: var(--peach);
+  }
+
+  .status {
+    display: grid;
+    gap: 28px;
+    margin: 0;
+    min-width: 220px;
+  }
+
+  .status dt {
+    color: var(--on-ink-muted);
+  }
+
+  .status dd {
+    margin: 4px 0 0;
+  }
+
+  .status .big {
+    font-family: var(--font-pixel);
+    font-size: 72px;
+    line-height: 1;
+  }
+
+  .unit {
+    margin-left: 10px;
+    font-family: var(--font-mono);
+    font-size: 14px;
+    color: var(--on-ink-muted);
+  }
+
+  .open {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .pulse {
+    position: relative;
+    flex: none;
+    width: 8px;
+    height: 8px;
+    background: var(--amber);
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .pulse::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: var(--amber);
+      animation: ping 2s ease-out infinite;
+    }
+  }
+
+  @keyframes ping {
+    0% { transform: scale(1); opacity: 0.7; }
+    80%, 100% { transform: scale(3); opacity: 0; }
+  }
+
+  @media (max-width: 860px) {
+    .hero-body {
+      grid-template-columns: 1fr;
+    }
+
+    .status {
+      grid-template-columns: repeat(2, auto);
+      justify-content: start;
+      gap: 24px 40px;
+      padding-top: 24px;
+      border-top: 1px solid var(--on-ink-line);
+    }
+
+    .status > :last-child {
+      grid-column: 1 / -1;
+    }
+
+    .status .big {
+      font-size: 44px;
+    }
+  }
+</style>
