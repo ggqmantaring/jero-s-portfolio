@@ -3,30 +3,38 @@ import Base from '../../layouts/Base.astro';
 import SiteNav from '../../components/SiteNav.astro';
 import Contact from '../../components/Contact.astro';
 import Plate from '../../components/Plate.astro';
-import { categories, type Category, type Project } from '../../data/work';
+import ProjectGrid from '../../components/ProjectGrid.astro';
+import InkEdge from '../../components/InkEdge.astro';
+import HeroBackground from '../../components/HeroBackground.astro';
+import { relatedEdge } from '../../data/settings';
+import { categories, PREVIEW_COUNT, type Category, type Project } from '../../data/work';
 
 export function getStaticPaths() {
   return categories.flatMap((category) =>
-    category.projects.map((project, pi) => ({
-      params: { category: category.slug, project: project.slug },
-      props: {
-        category,
-        project,
-        prev: category.projects[pi - 1],
-        next: category.projects[pi + 1],
-      },
-    })),
+    category.projects.map((project, pi) => {
+      // the projects that follow this one, wrapping round, so each page suggests a different set
+      const list = category.projects;
+      const others = [...list.slice(pi + 1), ...list.slice(0, pi)];
+      return {
+        params: { category: category.slug, project: project.slug },
+        props: { category, project, others },
+      };
+    }),
   );
 }
 
 interface Props {
   category: Category;
   project: Project;
-  prev?: Project;
-  next?: Project;
+  /** The category's other projects, in suggestion order. */
+  others: Project[];
 }
 
-const { category, project, prev, next } = Astro.props;
+const { category, project, others } = Astro.props;
+// one row of three (even for games: without the home page's side index, two per row is too big),
+// then a "View all" button if there are more
+const related = others.slice(0, PREVIEW_COUNT);
+const moreToSee = others.length > related.length;
 const base = import.meta.env.BASE_URL.replace(/\/$/, '');
 const images = project.images ?? [];
 const pieces = images.filter((img) => img.src).length;
@@ -41,7 +49,7 @@ const splitAt = project.reviews ? 1 : images.length;
 
 <Base title={`${project.title} — ${category.name} — Jero Mantaring`} description={project.description}>
   <header class="head">
-    <div class="glow" aria-hidden="true"></div>
+    <HeroBackground variant="page" />
     <div class="wrap">
     <SiteNav />
 
@@ -188,22 +196,23 @@ const splitAt = project.reviews ? 1 : images.length;
       </section>
     )}
 
-    <nav class="pager" aria-label={`More ${category.name}`}>
-      {prev ? (
-        <a class="prev" href={`${base}/${category.slug}/${prev.slug}`}>
-          <span class="label">← Previous</span>
-          <span class="pager-title">{prev.title}</span>
-        </a>
-      ) : <span></span>}
-      <a class="all label" href={`${base}/${category.slug}`}>All {category.short.toLowerCase()}</a>
-      {next ? (
-        <a class="next" href={`${base}/${category.slug}/${next.slug}`}>
-          <span class="label">Next →</span>
-          <span class="pager-title">{next.title}</span>
-        </a>
-      ) : <span></span>}
-    </nav>
   </main>
+
+  {related.length > 0 && <InkEdge id="edge-related" color="#e5dcc8" config={relatedEdge} />}
+  {related.length > 0 && (
+    <section class:list={['related', { 'straight-top': relatedEdge.style === 'straight' }]} aria-labelledby="related-label">
+      <div class="wrap">
+        <p class="label" id="related-label">Related projects</p>
+        <h2>More {category.name.toLowerCase()}</h2>
+        <ProjectGrid category={category} projects={related} cols={PREVIEW_COUNT} />
+        {moreToSee && (
+          <a class="btn-outline view-all" href={`${base}/${category.slug}`}>
+            View all {category.short} ({category.projects.length}) <span aria-hidden="true">→</span>
+          </a>
+        )}
+      </div>
+    </section>
+  )}
 
   <Contact />
 </Base>
@@ -216,18 +225,6 @@ const splitAt = project.reviews ? 1 : images.length;
     background: var(--ink);
     color: var(--on-ink);
     padding: 28px var(--gutter) clamp(56px, 7vw, 96px);
-  }
-
-  .glow {
-    position: absolute;
-    inset: 0;
-    background:
-      radial-gradient(40% 30% at 82% 70%, rgba(242, 191, 147, 0.32), transparent 70%),
-      radial-gradient(50% 35% at 45% 80%, rgba(47, 74, 190, 0.45), transparent 72%),
-      linear-gradient(180deg, var(--ink) 0%, var(--ink-2) 60%, var(--ink) 100%);
-    filter: blur(28px);
-    transform: scale(1.2);
-    pointer-events: none;
   }
 
   .head-body {
@@ -555,49 +552,34 @@ const splitAt = project.reviews ? 1 : images.length;
     color: var(--on-cream-muted);
   }
 
-  /* ---------- prev / next ---------- */
-  .pager {
-    display: grid;
-    grid-template-columns: 1fr auto 1fr;
-    align-items: center;
-    gap: 24px;
-    margin-top: clamp(72px, 10vw, 120px);
-    padding-top: 28px;
+  /* ---------- related projects: a separate, darker paper band below the project ---------- */
+  .related {
+    background: var(--cream-2);
+    padding: clamp(56px, 7vw, 88px) var(--gutter) clamp(140px, 16vw, 200px);
+  }
+
+  /* with a straight edge, a hairline marks where the band starts */
+  .related.straight-top {
     border-top: 1px solid var(--on-cream-line);
   }
 
-  .pager a {
-    text-decoration: none;
+  /* the project's own content ends sooner when a band follows it; leave room for the edge to rise into */
+  .body:has(+ :global(.edge)),
+  .body:has(+ .related) {
+    padding-bottom: clamp(96px, 12vw, 160px);
   }
 
-  .prev,
-  .next {
-    display: grid;
-    gap: 4px;
-  }
-
-  .next {
-    text-align: right;
-  }
-
-  .pager .label {
+  .related > .label {
     color: var(--on-cream-muted);
   }
 
-  .pager-title {
-    font-weight: 500;
+  .related h2 {
+    margin-top: 16px;
+    font-size: clamp(26px, 3vw, 36px);
   }
 
-  .prev:hover .pager-title,
-  .next:hover .pager-title {
-    text-decoration: underline;
-    text-underline-offset: 4px;
-  }
-
-  .all {
-    color: var(--navy) !important;
-    border-bottom: 1px solid currentColor;
-    padding-bottom: 4px;
+  .view-all {
+    margin-top: 36px;
   }
 
   @media (max-width: 860px) {
@@ -624,22 +606,12 @@ const splitAt = project.reviews ? 1 : images.length;
       grid-template-columns: 1fr;
     }
 
-    .pager {
-      grid-template-columns: 1fr 1fr;
-    }
-
     .controls dl > div {
       grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
     }
 
     .reviews ul {
       grid-template-columns: 1fr;
-    }
-
-    .all {
-      grid-column: 1 / -1;
-      grid-row: 2;
-      justify-self: center;
     }
   }
 </style>

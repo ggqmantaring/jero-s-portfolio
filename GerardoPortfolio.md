@@ -12,7 +12,7 @@ Run locally: `npm run dev` → http://localhost:4321/jero-s-portfolio/. `README.
 
 ## About Gerardo
 
-**Roles:** writer, pixel artist, independent game developer, illustrator, sound designer, video editor, teacher/tutor. From the Philippines. His itch.io handle is **emptyhaven**. Whenever it's mentioned, write it as **emptyhaven (Jero M.)**. Press in 2013 credited him as "Jero".
+**Roles:** writer, pixel artist, independent game developer, illustrator, sound designer, video editor, teacher/tutor. **Don't mention the Philippines as a location on the site** (user request); it's fine inside proper names like "University of the Philippines Diliman". His itch.io handle is **emptyhaven**. Whenever it's mentioned, write it as **emptyhaven (Jero M.)**. Press in 2013 credited him as "Jero".
 
 **Education**
 - BS Interactive Entertainment & Multimedia Computing, De La Salle–College of Saint Benilde (May 2017 – July 2024)
@@ -44,19 +44,19 @@ Run locally: `npm run dev` → http://localhost:4321/jero-s-portfolio/. `README.
 - Inspiration is in `../inspiration-library`: ink on paper, a navy/cream diptych, a blue-and-peach light leak, a pixel hero in the style of Depththread, and a ledger layout.
 - Buttons: solid amber with ink text; on hover they turn ink (#0b0c11, the hero's darkest color) with amber text and an amber border.
 - Hero background: a soft blurred glow until the user's custom image arrives. Light-leak, horizon and dot variants were rejected.
-- The hero meets the content with a straight edge. The ragged ink edge (`InkEdge.astro`) appears only above the footer. A film grain covers the whole page.
+- The hero meets the content with a straight edge. **`src/data/settings.ts` holds hand-editable look settings**: `hero` (headline, intro, buttons, stats, spacing, and background: glow colors, intensity, blur, angle, or a custom image with crop position and darkening; also used by project headers via `HeroBackground.astro`), `relatedEdge` (the edge into the Related projects band, #e5dcc8), and `footerEdge`. The edge above the footer: style `ink` (current), `straight`, or `image` (own artwork in `public/images/edges/`, with a transparent top and an #0b0c11 bottom), plus height, drip length, density, softness, pattern, and halo. It renders via `InkEdge.astro`. A film grain covers the whole page.
 - Every band shares one content column: 1320px max minus the gutters (the `.wrap` class).
-- Wordmark: "GERARDO MANTARING ■", subtitle "Words · Pixels · Games".
+- Wordmark: "JERO MANTARING ■", subtitle "Games · Pixels · Words" (same order as the hero tagline and the home tab title).
 
 **Home page**
-- Hero: placeholder tagline "small worlds, made by hand" with a third-person bio; the user is rewriting both. Buttons: "let's work together" (to contact) and "browse my work". Stats: project count (big), number of fields, and "open to new opportunities". The counts come from the data automatically.
+- Hero: tagline "Games. Pixels. Words." (set in `settings.ts`) with a third-person bio. Buttons: "let's work together" (to contact) and "browse my work". Stats: project count (big), number of fields, and "open to new opportunities". The counts come from the data automatically.
 - Ledger layout: a sticky numbered index on the left, which becomes a sticky dropdown bar on phones.
 - Sections: 01 Pixel Art · 02 Game Dev · 03 Video & Animation · 04 Sound · 05 Writing · 06 Illustrations · 07 About (teaser).
-- Each section shows 3 projects, then "See all" (when there are more) links to the category page. On phones the thumbnails become a swipeable row. Sound and Writing are text-only lists.
+- Each section shows **one row** (3 projects; **Games show 2**, bigger, via `perRow: 2` in `work.ts`), then an outlined "See all Pixel Art (5) →" button (`.btn-outline` in global.css, also used for "More about Jero") links to the category page. On phones the thumbnails become a swipeable row. Sound and Writing are text-only lists.
 - Footer: "let's work together", contact details, "© 2010–[build year] Gerardo Mantaring. All rights reserved."
 
 **Project pages** (`src/pages/[category]/[project].astro`, one template for all)
-- Breadcrumbs (Home / Category / Project) → dark header (title, tag, description, details) → gallery of white plates captioned "Fig. 01" → previous/next links → footer.
+- Breadcrumbs (Home / Category / Project) → dark header (title, tag, description, details) → gallery of white plates captioned "Fig. 01" → **Related projects** in its own full-width darker paper band (`--cream-2`; a navy band was tried and rejected), so it reads as separate from the project ("More pixel art": one row of **three** from the same category in its home-page thumbnail style (games too), starting with the projects after this one; "View all … (n) →" if there are more; hidden if the category has only one project) → footer.
 - The gallery is 6 columns; each image's `span` sets its width: 2 = three per row, 3 = two per row, 6 = full width. Images never show above their native size, and pixel art stays crisp.
 - An image with no `src` shows a dashed "Image coming soon" plate. "Pieces" counts only real images.
 - **Years are hidden:** `year` is rendered everywhere but hidden by `.year { display: none }` in `global.css`. Delete that rule to show them.
@@ -112,8 +112,8 @@ Gerardo was the **artist** on Dear Mumei; his own jam comment says so, and he al
 - Decide whether to show years, and whether to keep the ink edge above the footer
 
 **Next to build**
-- Revise the home-page About section: copy, portrait, highlights, layout
-- About page: full bio, tutoring, education, awards
+- About: the home section shows only portrait + heading + pitch + "More about Jero"; the **About page** (`src/pages/about.astro`, `/about`) has the pitch, portrait, and roomy Skills cards, Tools rows, Education, Recognition. All content lives in `src/data/about.ts`. The nav "about" link goes to `/about` and is highlighted there. Still to decide: résumé PDF, LinkedIn/ArtStation links, availability line, spoken languages, and whether to keep the self-portrait
+- About page: add tutoring, a full bio, and employer extras (résumé PDF, availability, profile links)
 - Design the category ("See all") pages; they're still basic stubs with no nav or footer
 - Video support in the gallery (MP4/WebM: autoplay, muted, loop), once the first clip arrives
 

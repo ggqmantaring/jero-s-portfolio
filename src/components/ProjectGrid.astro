@@ -1,0 +1,183 @@
+---
+import { rowSize, type Category, type Project } from '../data/work';
+import Thumb from './Thumb.astro';
+
+// A category's projects in its home-page layout: thumbnail grid (pixel art, games,
+// video, illustrations) or text rows (sound, writing). Used on the home page,
+// category pages, and in "Related projects" at the end of project pages.
+interface Props {
+  category: Category;
+  projects: Project[];
+  /** Thumbnails per row; defaults to the category's home-page row size. */
+  cols?: number;
+}
+
+const { category, projects, cols = rowSize(category) } = Astro.props;
+const base = import.meta.env.BASE_URL.replace(/\/$/, '');
+const projectHref = (slug: string) => `${base}/${category.slug}/${slug}`;
+
+// deterministic waveform bars for sound rows
+const bars = (seed: number) =>
+  Array.from({ length: 28 }, (_, i) => 20 + Math.round(Math.abs(Math.sin(seed * 7.3 + i * 1.7)) * 80));
+---
+
+{category.display === 'thumbs' && category.art && (
+  <ul class:list={['grid', `grid-${category.art}`]} style={`--cols: ${cols}`}>
+    {projects.map((p, i) => <Thumb project={p} art={category.art!} href={projectHref(p.slug)} index={i} />)}
+  </ul>
+)}
+
+{category.display === 'list' && (
+  <ol class="rows">
+    {projects.map((p, i) => (
+      <li>
+        <a class="row" href={projectHref(p.slug)}>
+          <span class="row-num" aria-hidden="true">&gt; {String(i + 1).padStart(2, '0')}</span>
+          <span class="row-main">
+            <span class="row-title">{p.title}</span>
+            <span class="row-tag">{p.tag}</span>
+            {p.excerpt && <span class="row-excerpt">“{p.excerpt}”</span>}
+          </span>
+          {p.length && (
+            <span class="row-side">
+              <span class="wave" aria-hidden="true">
+                {bars(i + 1).map((h) => <i style={`height:${h}%`}></i>)}
+              </span>
+              <span class="row-len">{p.length}</span>
+            </span>
+          )}
+        </a>
+      </li>
+    ))}
+  </ol>
+)}
+
+<style>
+  .grid {
+    list-style: none;
+    margin: 40px 0 0;
+    padding: 0;
+    display: grid;
+    grid-template-columns: repeat(var(--cols, 3), minmax(0, 1fr));
+    gap: 32px 24px;
+    align-items: start;
+  }
+
+  /* text-only rows (sound, writing) */
+  .rows {
+    list-style: none;
+    margin: 36px 0 0;
+    padding: 0;
+    border-top: 1px solid var(--on-cream-line);
+  }
+
+  .row {
+    display: grid;
+    grid-template-columns: 56px minmax(0, 1fr) auto;
+    gap: 16px;
+    align-items: baseline;
+    padding: 20px 0;
+    border-bottom: 1px solid var(--on-cream-line);
+    text-decoration: none;
+    transition: background-color 160ms ease, padding 200ms ease;
+  }
+
+  .row:hover {
+    background: var(--cream-2);
+    padding-left: 12px;
+    padding-right: 12px;
+  }
+
+  .row-num {
+    font-size: 13px;
+    color: var(--navy);
+  }
+
+  .row-main {
+    display: grid;
+    gap: 2px;
+  }
+
+  .row-title {
+    font-weight: 500;
+    font-size: 16px;
+  }
+
+  .row-tag {
+    font-size: 13px;
+    color: var(--on-cream-muted);
+  }
+
+  .row-excerpt {
+    margin-top: 8px;
+    font-size: 14px;
+    color: var(--on-cream-muted);
+    max-width: 60ch;
+  }
+
+  .row-side {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    align-self: center;
+  }
+
+  .wave {
+    display: flex;
+    align-items: center;
+    gap: 2px;
+    height: 24px;
+  }
+
+  .wave i {
+    display: block;
+    width: 2px;
+    background: var(--navy);
+    opacity: 0.55;
+  }
+
+  .row:hover .wave i {
+    opacity: 1;
+  }
+
+  .row-len {
+    font-size: 13px;
+    color: var(--on-cream-muted);
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* phones: the row becomes a swipeable rail that bleeds to the screen edge */
+  @media (max-width: 720px) {
+    .grid {
+      display: flex;
+      gap: 16px;
+      overflow-x: auto;
+      scroll-snap-type: x mandatory;
+      margin-right: calc(-1 * var(--gutter));
+      padding-right: var(--gutter);
+      padding-bottom: 8px;
+      scrollbar-width: none;
+    }
+
+    .grid::-webkit-scrollbar {
+      display: none;
+    }
+
+    .grid > :global(li) {
+      flex: 0 0 72%;
+      scroll-snap-align: start;
+    }
+
+    .grid-pixel > :global(li) {
+      flex-basis: 62%;
+    }
+
+    .wave {
+      display: none;
+    }
+
+    .row {
+      grid-template-columns: 40px minmax(0, 1fr) auto;
+    }
+  }
+</style>

@@ -1,45 +1,54 @@
 ---
 import { categories } from '../data/work';
+import { hero } from '../data/settings';
 import SiteNav from './SiteNav.astro';
+import HeroBackground from './HeroBackground.astro';
 
 // counted from src/data/work.ts at build time, so these follow the project list
 const totalProjects = categories.reduce((n, c) => n + c.projects.filter((p) => !p.placeholder).length, 0);
 const pad = (n: number) => String(n).padStart(2, '0');
+const { headline, intro, primaryButton, secondaryButton, stats, spacing } = hero;
+const spacingVars = `--space-top: ${spacing.aboveHeadline}px; --space-bottom: ${spacing.belowContent}px`;
 ---
 
-<header class="hero">
-  <div class="glow" aria-hidden="true"></div>
+<header class="hero" style={spacingVars}>
+  <HeroBackground variant="home" />
 
   <div class="wrap">
   <SiteNav />
 
-  <div class="hero-body">
+  <div class:list={['hero-body', { 'no-stats': !stats.show }]}>
     <div class="hero-copy">
-      <h1>small worlds, made by hand<span class="block" aria-hidden="true"></span></h1>
-      <p class="lede">
-        Jero Mantaring is a writer, pixel artist, and independent game developer from the
-        Philippines, building small worlds out of words, pixels, and sound.
-      </p>
-      <div class="actions">
-        <a class="btn" href="#contact">&gt; let's work together</a>
-        <a class="ghost" href="#work">browse my work <span aria-hidden="true">▸</span></a>
-      </div>
+      <h1>{headline}<span class="block" aria-hidden="true"></span></h1>
+      {intro && <p class="lede">{intro}</p>}
+      {(primaryButton.show || secondaryButton.show) && (
+        <div class="actions">
+          {primaryButton.show && <a class="btn" href={primaryButton.href}>&gt; {primaryButton.label}</a>}
+          {secondaryButton.show && (
+            <a class="ghost" href={secondaryButton.href}>{secondaryButton.label} <span aria-hidden="true">▸</span></a>
+          )}
+        </div>
+      )}
     </div>
 
-    <dl class="status">
-      <div>
-        <dt class="label">On file</dt>
-        <dd class="big">{pad(totalProjects)}<span class="unit">projects</span></dd>
-      </div>
-      <div>
-        <dt class="label">Disciplines</dt>
-        <dd>{pad(categories.length)} fields</dd>
-      </div>
-      <div>
-        <dt class="label">Status</dt>
-        <dd class="open"><span class="pulse" aria-hidden="true"></span>open to new opportunities</dd>
-      </div>
-    </dl>
+    {stats.show && (
+      <dl class="status">
+        <div>
+          <dt class="label">{stats.projectsLabel}</dt>
+          <dd class="big">{pad(totalProjects)}<span class="unit">projects</span></dd>
+        </div>
+        <div>
+          <dt class="label">{stats.fieldsLabel}</dt>
+          <dd>{pad(categories.length)} fields</dd>
+        </div>
+        {stats.status && (
+          <div>
+            <dt class="label">{stats.statusLabel}</dt>
+            <dd class="open">{stats.pulse && <span class="pulse" aria-hidden="true"></span>}{stats.status}</dd>
+          </div>
+        )}
+      </dl>
+    )}
   </div>
   </div>
 </header>
@@ -50,23 +59,8 @@ const pad = (n: number) => String(n).padStart(2, '0');
     overflow: hidden;
     background: var(--ink);
     color: var(--on-ink);
-    padding: 28px var(--gutter) clamp(64px, 9vw, 120px);
-  }
-
-  /* blurred light leak, after the navy/peach mood image */
-  .glow {
-    position: absolute;
-    inset: 0;
-    background:
-      radial-gradient(38% 18% at 78% 62%, rgba(242, 191, 147, 0.55), transparent 70%),
-      radial-gradient(30% 14% at 30% 74%, rgba(242, 191, 147, 0.28), transparent 70%),
-      radial-gradient(46% 22% at 52% 52%, rgba(47, 74, 190, 0.55), transparent 72%),
-      radial-gradient(60% 30% at 12% 70%, rgba(31, 42, 120, 0.6), transparent 70%),
-      linear-gradient(180deg, var(--ink) 0%, var(--ink-2) 55%, var(--ink) 100%);
-    filter: blur(28px);
-    transform: rotate(-8deg) scale(1.25);
-    opacity: 0.9;
-    pointer-events: none;
+    /* below-content spacing comes from settings: about half on phones, full on wide screens */
+    padding: 28px var(--gutter) clamp(calc(var(--space-bottom) * 0.53), 9vw, var(--space-bottom));
   }
 
   .block {
@@ -82,7 +76,11 @@ const pad = (n: number) => String(n).padStart(2, '0');
     grid-template-columns: minmax(0, 1fr) auto;
     gap: 48px;
     align-items: end;
-    margin-top: clamp(72px, 12vw, 150px);
+    margin-top: clamp(calc(var(--space-top) * 0.48), 12vw, var(--space-top));
+  }
+
+  .hero-body.no-stats {
+    grid-template-columns: minmax(0, 1fr);
   }
 
   h1 {

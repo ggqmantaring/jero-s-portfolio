@@ -1,59 +1,76 @@
 ---
-// Ragged ink-bleed edge between dark and cream bands, after the ink-on-paper mood image.
-// `color` is the band it drips from (a literal color; SVG attributes can't read CSS vars);
-// `flip` makes the ink rise from below instead of dripping down.
+// The edge where a band rises into the content above it: an ink bleed, a straight cut,
+// or a custom image. Its look is set in src/data/settings.ts (footerEdge, relatedEdge).
+// `color` is the color of the band below (a literal; SVG attributes can't read CSS vars).
+import { footerEdge, type EdgeSettings } from '../data/settings';
+
 interface Props {
   id: string;
   color?: string;
-  flip?: boolean;
+  config?: EdgeSettings;
 }
 
-const { id, color = '#0b0c11', flip = false } = Astro.props;
+const { id, color = '#0b0c11', config = footerEdge } = Astro.props;
+const { style, height, ink, image } = config;
+const base = import.meta.env.BASE_URL.replace(/\/$/, '');
+const h = `clamp(${height.min}px, ${(height.max / 1440) * 100}vw, ${height.max}px)`;
 ---
 
-<svg
-  class:list={['ink-edge', { flip }]}
-  viewBox="0 0 1440 140"
-  preserveAspectRatio="none"
-  aria-hidden="true"
->
-  <defs>
-    <!-- streaky noise: changes fast across x, slowly down y, so the edge runs in vertical drips -->
-    <!-- G is pinned to 0.5 so pixels only move vertically -->
-    <filter id={`${id}-feather`} x="-5%" y="-50%" width="110%" height="200%">
-      <feTurbulence type="fractalNoise" baseFrequency="0.11 0.002" numOctaves="4" seed="3" />
-      <feColorMatrix values="1 0 0 0 0  0 0 0 0 0.5  0 0 0 0 0  0 0 0 0 1" result="noise" />
-      <feDisplacementMap in="SourceGraphic" in2="noise" scale="110" xChannelSelector="G" yChannelSelector="R" result="d" />
-      <feGaussianBlur in="d" stdDeviation="0.6 7" />
-    </filter>
-    <filter id={id} x="-5%" y="-50%" width="110%" height="200%">
-      <feTurbulence type="fractalNoise" baseFrequency="0.07 0.002" numOctaves="4" seed="11" />
-      <feColorMatrix values="1 0 0 0 0  0 0 0 0 0.5  0 0 0 0 0  0 0 0 0 1" result="noise" />
-      <feDisplacementMap in="SourceGraphic" in2="noise" scale="70" xChannelSelector="G" yChannelSelector="R" result="d" />
-      <feGaussianBlur in="d" stdDeviation="0.3 3" />
-    </filter>
-  </defs>
-  <!-- warm brown fringe, like ink feathering into paper -->
-  <rect x="-80" y="-80" width="1600" height="150" fill="#3a2e26" opacity="0.55" filter={`url(#${id}-feather)`} />
-  <rect x="-80" y="-80" width="1600" height="135" fill={color} filter={`url(#${id})`} />
-</svg>
+{style === 'ink' && (
+  <svg class="edge" style={`--h: ${h}`} viewBox="0 0 1440 140" preserveAspectRatio="none" aria-hidden="true">
+    <defs>
+      <!-- streaky noise: changes fast across x, slowly down y, so the edge runs in vertical drips; G pinned to 0.5 so pixels only move vertically -->
+      {ink.halo.show && (
+        <filter id={`${id}-halo`} x="-5%" y="-50%" width="110%" height="200%">
+          <feTurbulence type="fractalNoise" baseFrequency={`${ink.dripDensity * 1.6} 0.002`} numOctaves="4" seed={ink.pattern - 8} />
+          <feColorMatrix values="1 0 0 0 0  0 0 0 0 0.5  0 0 0 0 0  0 0 0 0 1" />
+          <feDisplacementMap in="SourceGraphic" scale={ink.dripLength * 1.6} xChannelSelector="G" yChannelSelector="R" />
+          <feGaussianBlur stdDeviation={`0.6 ${ink.softness + 4}`} />
+        </filter>
+      )}
+      <filter id={id} x="-5%" y="-50%" width="110%" height="200%">
+        <feTurbulence type="fractalNoise" baseFrequency={`${ink.dripDensity} 0.002`} numOctaves="4" seed={ink.pattern} />
+        <feColorMatrix values="1 0 0 0 0  0 0 0 0 0.5  0 0 0 0 0  0 0 0 0 1" />
+        <feDisplacementMap in="SourceGraphic" scale={ink.dripLength} xChannelSelector="G" yChannelSelector="R" />
+        <feGaussianBlur stdDeviation={`0.3 ${ink.softness}`} />
+      </filter>
+    </defs>
+    {ink.halo.show && (
+      <rect x="-80" y="-80" width="1600" height="150" fill={ink.halo.color} opacity={ink.halo.opacity} filter={`url(#${id}-halo)`} />
+    )}
+    <rect x="-80" y="-80" width="1600" height="135" fill={color} filter={`url(#${id})`} />
+  </svg>
+)}
+
+{style === 'image' && (
+  <div
+    class="edge edge-image"
+    style={`--h: ${h}; background-image: url('${base}/${image.src}'); background-size: ${image.fit === 'repeat' ? 'auto 100%' : '100% 100%'}; background-repeat: ${image.fit === 'repeat' ? 'repeat-x' : 'no-repeat'}`}
+    aria-hidden="true"
+  ></div>
+)}
 
 <style>
-  .ink-edge {
-    --h: clamp(64px, 9vw, 140px);
+  /* the edge overlaps the bottom of the content above it, rising out of the footer */
+  .edge {
+    --h: 100px;
     display: block;
     width: 100%;
     height: var(--h);
-    margin-bottom: calc(-1 * var(--h));
     position: relative;
     z-index: 1;
     pointer-events: none;
+    margin-top: calc(-1 * var(--h));
+    /* -1px closes a hairline gap against the footer */
+    margin-bottom: -1px;
   }
 
-  .flip {
+  /* the ink is drawn dripping down, then flipped so it rises from the footer */
+  svg.edge {
     transform: scaleY(-1);
-    /* -1px closes a hairline gap against the band below */
-    margin-bottom: -1px;
-    margin-top: calc(-1 * var(--h));
+  }
+
+  .edge-image {
+    background-position: bottom center;
   }
 </style>

@@ -77,12 +77,17 @@ export type Category = {
   intro: string;
   /** thumbs = image grid; list = text-only rows */
   display: 'thumbs' | 'list';
+  /** Thumbnails per row (home page, related projects). Default 3; 2 gives bigger thumbnails. */
+  perRow?: 2 | 3;
   /** Thumbnail art style and shape for placeholders. */
   art?: 'pixel' | 'game' | 'video' | 'illustration';
   projects: Project[];
 };
 
 export const PREVIEW_COUNT = 3;
+
+/** How many projects make one row for a category. */
+export const rowSize = (c: Category) => c.perRow ?? PREVIEW_COUNT;
 
 const allCategories: Category[] = [
   {
@@ -191,6 +196,7 @@ const allCategories: Category[] = [
       'Independent games designed, drawn, and scored by one person, built in PuzzleScript, Construct 2, RPG Maker, and Unreal Engine 4.',
     display: 'thumbs',
     art: 'game',
+    perRow: 2,
     projects: [
       {
         slug: 'dear-mumei',

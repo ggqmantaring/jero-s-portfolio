@@ -93,6 +93,38 @@ p {
   display: none !important;
 }
 
+/* Secondary button on cream: ink outline with a pixel-style offset shadow.
+   On hover it fills with the hero's ink, like the main amber buttons, and presses in. */
+.btn-outline {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 22px;
+  font-weight: 500;
+  color: var(--ink);
+  text-decoration: none;
+  border: 1.5px solid var(--ink);
+  box-shadow: 3px 3px 0 var(--ink);
+  transition: background-color 160ms ease, color 160ms ease, box-shadow 160ms ease, transform 160ms ease;
+}
+
+.btn-outline:hover {
+  background: var(--ink);
+  color: var(--amber);
+  box-shadow: 0 0 0 var(--ink);
+  transform: translate(3px, 3px);
+}
+
+.btn-outline span {
+  display: inline-block;
+  color: var(--amber);
+  transition: transform 180ms ease;
+}
+
+.btn-outline:hover span {
+  transform: translateX(4px);
+}
+
 /* small uppercase labels: "01 — PIXEL ART" */
 .label {
   font-family: var(--font-mono);

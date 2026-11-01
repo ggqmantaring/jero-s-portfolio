@@ -1,17 +1,34 @@
 ---
 // Top bar on dark backgrounds: wordmark + primary links.
+interface Props {
+  /** Which link to highlight. */
+  current?: 'work' | 'about';
+}
+
+const { current = 'work' } = Astro.props;
 const base = import.meta.env.BASE_URL.replace(/\/$/, '');
+const links = [
+  { id: 'work', label: 'work', href: `${base}/#work` },
+  { id: 'about', label: 'about', href: `${base}/about` },
+  { id: 'contact', label: 'contact', href: '#contact' },
+];
 ---
 
 <nav class="top" aria-label="Primary">
   <a class="wordmark" href={`${base}/`}>
     <span class="wordmark-name">Jero Mantaring<span class="block" aria-hidden="true"></span></span>
-    <span class="label wordmark-sub">Words · Pixels · Games</span>
+    <span class="label wordmark-sub">Games · Pixels · Words</span>
   </a>
   <ul class="top-links">
-    <li><a href={`${base}/#work`} class="is-current">&gt; work</a></li>
-    <li><a href={`${base}/#about`}>about</a></li>
-    <li><a href="#contact">contact</a></li>
+    {links.map((l) => (
+      <li>
+        {l.id === current ? (
+          <a href={l.href} class="is-current" aria-current="page">&gt; {l.label}</a>
+        ) : (
+          <a href={l.href}>{l.label}</a>
+        )}
+      </li>
+    ))}
   </ul>
 </nav>
 
